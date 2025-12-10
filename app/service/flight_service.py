@@ -1,8 +1,9 @@
 from sqlalchemy.orm import Session
 from typing import Dict, Any, List, Optional
+from fastapi import HTTPException
 from app.repositories.flight_repository import FlightRepository
 from app.utils.logger import log_change
-from app.utils.exception import FlightNotFound, FlightUpdateFailed
+from app.utils.exception import FlightNotFound
 
 
 class FlightService:
@@ -32,11 +33,13 @@ class FlightService:
             self.db.rollback()
             raise
 
+    # Create a new flight
     def create_flight(self, flight_data: Dict[str, Any]):
         flight = self.repo.create(flight_data, commit=False)
         self._commit()
         return flight
 
+    # Update a flight and log changes
     def update_flight(self, flight_id: int, update_data: Dict[str, Any], actor: str = "system"):
         flight = self._get_flight_or_raise(flight_id)
         diffs = self._compute_diffs(flight, update_data)
@@ -47,8 +50,28 @@ class FlightService:
         log_change(entity="flight", entity_id=flight_id, diffs=diffs, actor=actor)
         return updated
 
+    # Delete a flight
     def delete_flight(self, flight_id: int) -> bool:
         flight = self._get_flight_or_raise(flight_id)
         result = self.repo.delete(flight.flight_id, commit=False)
         self._commit()
         return result
+
+    # List flights with Pagination, Filtering and Sorting
+    def list_flights(
+            self,
+            skip: int = 0,
+            limit: int = 100,
+            filters: Optional[Dict[str, Any]] = None,
+            sort_by: str = "flight_id",
+            sort_desc: bool = False
+    ) -> List:
+        if sort_by not in self.repo._cols:
+            raise HTTPException(status_code=400, detail=f"Invalid sort_by column: {sort_by}")
+        return self.repo.list(
+            skip=skip,
+            limit=limit,
+            filters=filters,
+            sort_by=sort_by,
+            sort_desc=sort_desc
+        )

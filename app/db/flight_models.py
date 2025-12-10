@@ -10,8 +10,8 @@ class FlightStatus(enum.Enum):
     scheduled = "scheduled"
     delayed = "delayed"
     cancelled = "cancelled"
-    landed = "landed"
-
+    departed = "departed"
+    arrived = "arrived"
 
 class Flight(Base):
     __tablename__ = "flights"
@@ -26,7 +26,7 @@ class Flight(Base):
     aircraft_type: Mapped[str] = mapped_column(String(50), nullable=False)
     seats_total: Mapped[int] = mapped_column(Integer, nullable=False)
     seats_available: Mapped[int] = mapped_column(Integer, nullable=False)
-    status: Mapped[FlightStatus] = mapped_column(SQLEnum(FlightStatus), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=func.now(), onupdate=func.now())
     process_id: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -34,6 +34,7 @@ class Flight(Base):
     __table_args__ = (
         CheckConstraint('seats_available >= 0', name='check_seats_positive'),
     )
+
 
     def __repr__(self):
         return f"<Flight {self.flight_id}>"

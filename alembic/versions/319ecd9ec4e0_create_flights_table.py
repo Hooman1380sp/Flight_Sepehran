@@ -1,8 +1,8 @@
 """create flights table
 
-Revision ID: c3a50178a451
+Revision ID: 319ecd9ec4e0
 Revises: 
-Create Date: 2025-12-10 00:40:17.029348
+Create Date: 2025-12-10 21:19:51.781155
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c3a50178a451'
+revision: str = '319ecd9ec4e0'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -32,7 +32,7 @@ def upgrade() -> None:
     sa.Column('aircraft_type', sa.String(length=50), nullable=False),
     sa.Column('seats_total', sa.Integer(), nullable=False),
     sa.Column('seats_available', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('scheduled', 'delayed', 'cancelled', 'landed', name='flightstatus'), nullable=False),
+    sa.Column('status', sa.String(length=20), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.Column('process_id', sa.String(length=20), nullable=False),
