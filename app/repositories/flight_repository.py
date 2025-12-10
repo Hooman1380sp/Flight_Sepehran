@@ -26,8 +26,8 @@ class FlightRepository:
         return flight
 
     # Get by ID - use session.get
-    def get_by_id(self, flight_id: int) -> Optional[Flight]:
-        return self.db.get(Flight, flight_id)
+    # def get_by_id(self, flight_id: int) -> Optional[Flight]:
+    #     return self.db.get(Flight, flight_id)
 
     # List with pagination/filter/sort - validate keys
     def list(
