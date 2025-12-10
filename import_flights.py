@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from app.db.connection import SessionLocal
 # from app.db.flight_models import Flight
-from app.db.base import Base, Flight
+from app.db.base import Base
 from sqlalchemy import create_engine
 from app.core.settings import get_settings
 

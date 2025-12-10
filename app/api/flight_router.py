@@ -16,11 +16,11 @@ def create_flight(flight_data: FlightCreate, db: Session = Depends(get_db)):
     return flight
 
 
-@router.put("/update/{flight_id}", response_model=FlightOut)
+@router.patch("/update/{flight_id}", response_model=FlightOut)
 def update_flight(flight_id: int, flight_data: FlightUpdate, db: Session = Depends(get_db)):
     service = FlightService(db)
     try:
-        updated = service.update_flight(flight_id, flight_data.dict())
+        updated = service.update_flight(flight_id, flight_data.dict(exclude_unset=True))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return updated
@@ -43,6 +43,8 @@ def list_flights(
         sort_desc: bool = False,
         origin: Optional[str] = None,
         destination: Optional[str] = None,
+        status: Optional[str] = None,
+        aircraft_type: Optional[str] = None,
         db: Session = Depends(get_db)
 ):
     filters = {}
@@ -50,6 +52,10 @@ def list_flights(
         filters["origin"] = origin
     if destination:
         filters["destination"] = destination
+    if status:
+        filters["status"] = status
+    if aircraft_type:
+        filters["aircraft_type"] = aircraft_type
 
     service = FlightService(db)
     try:
@@ -64,4 +70,5 @@ def list_flights(
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     return flights

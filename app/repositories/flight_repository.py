@@ -11,22 +11,18 @@ class FlightRepository:
         self.db = db
 
     def create(self, flight_data: Dict[str, Any], commit: bool = False) -> Flight:
-        columns = ", ".join(flight_data.keys())
-        values = ", ".join(f":{k}" for k in flight_data.keys())
-        stmt = text(f"""
-            INSERT INTO Flights ({columns})
-            OUTPUT INSERTED.*
-            VALUES ({values})
-        """)
-        result = self.db.execute(stmt, flight_data)
-        created_row = result.fetchone()
+        flight = Flight(**flight_data)
+        self.db.add(flight)
         if commit:
             try:
                 self.db.commit()
             except:
                 self.db.rollback()
                 raise
-        flight = Flight(**created_row)
+            self.db.refresh(flight)
+        else:
+            self.db.flush()
+            self.db.refresh(flight)
         return flight
 
     def list(
@@ -48,7 +44,6 @@ class FlightRepository:
         stmt = stmt.offset(skip).limit(limit)
         return self.db.execute(stmt).scalars().all()
 
-    # Update (ORM) بدون تغییر
     def update(self, flight_id: int, update_data: Dict[str, Any], commit: bool = False) -> Optional[Flight]:
         flight = self.db.get(Flight, flight_id)
         if not flight:
@@ -69,17 +64,23 @@ class FlightRepository:
         return flight
 
     def delete(self, flight_id: int, commit: bool = False) -> bool:
-        stmt = text("""
-            DELETE FROM Flights
-            OUTPUT DELETED.*
-            WHERE flight_id = :flight_id
-        """)
-        result = self.db.execute(stmt, {"flight_id": flight_id})
+        # 1. رکورد رو قبل از حذف بخونیم
+        flight = self.db.get(Flight, flight_id)
+        if not flight:
+            return False  # رکورد پیدا نشد
+
+        # 2. حذف رکورد
+        self.db.delete(flight)
+
+        # 3. commit یا flush
         if commit:
             try:
                 self.db.commit()
             except:
                 self.db.rollback()
                 raise
-        deleted_row = result.fetchone()
-        return deleted_row is not None
+        else:
+            self.db.flush()
+
+        return True
+
